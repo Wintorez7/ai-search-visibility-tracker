@@ -15,18 +15,18 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button size="sm" className="gap-2 bg-white text-primary hover:bg-white/90">
+          <Button size="sm" className="gap-2 bg-white text-primary hover:bg-black/20">
             <Plus className="h-4 w-4" />
             Add Project
           </Button>
-          <Button size="sm" variant="outline" className="gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20">
+          <Button size="sm" variant="outline" className="gap-2 border-white/30 bg-white/10 text-black hover:bg-black/20">
             <Plus className="h-4 w-4" />
             Add Keyword
           </Button>
-          <div className="ml-2 flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5">
+          {/* <div className="ml-2 flex items-center gap-2 rounded-lg bg-white/10 px-3 py-1.5">
             <User className="h-4 w-4 text-white" />
             <span className="text-sm text-white">rohan@example.com</span>
-          </div>
+          </div> */}
         </div>
       </div>
     </header>
