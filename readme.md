@@ -57,7 +57,7 @@ NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
 MONGODB_URI=mongodb+srv://mohanKumhar:MK2025@cluster0.zlg15hi.mongodb.net/
 
 
-
+s
 🧩 Running the Project
 🖥 Development
 npm run dev
