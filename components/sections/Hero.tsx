@@ -1,9 +1,10 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { CreditCard, Download, ArrowRight, Sparkles } from 'lucide-react'
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { CreditCard, Download, ArrowRight, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -25,15 +26,26 @@ export default function Hero() {
           </h1>
 
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-            AED Tracker is an AI-powered dashboard that enhances your brand visibility across ChatGPT, Bard, Perplexity, and more.
+            AED Tracker is an AI-powered dashboard that enhances your brand
+            visibility across ChatGPT, Bard, Perplexity, and more.
           </p>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <Button size="lg" className="shadow-medium transition-bounce hover:scale-105">
+            {/* <Button size="lg" className="shadow-medium transition-bounce hover:scale-105">
               Get Started
               <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button size="lg" variant="outline" className="transition-smooth hover:bg-secondary hover:text-black">
+            </Button> */}
+            <Link href="/sign-up">
+              <Button size="lg" className="shadow-medium transition-bounce hover:scale-105">
+                Get Started
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <Button
+              size="lg"
+              variant="outline"
+              className="transition-smooth hover:bg-secondary hover:text-black"
+            >
               <div className="flex items-center gap-2">
                 <div className="h-5 w-5 rounded-full border-2 border-current" />
                 Live Demo
@@ -51,12 +63,16 @@ export default function Hero() {
                 <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-400" />
                 <div>
                   <p className="font-semibold text-gray-900">Alessandra Corp</p>
-                  <p className="text-sm text-gray-500">atlas@andre@example.com</p>
+                  <p className="text-sm text-gray-500">
+                    atlas@andre@example.com
+                  </p>
                 </div>
               </div>
 
               <div className="pt-2">
-                <p className="text-sm font-medium text-gray-600 mb-2">Ranking</p>
+                <p className="text-sm font-medium text-gray-600 mb-2">
+                  Ranking
+                </p>
                 <div className="flex items-baseline gap-2 mb-1">
                   <span className="text-2xl font-bold text-gray-900">#25</span>
                   <span className="text-sm text-gray-500">of 5000</span>
@@ -71,14 +87,18 @@ export default function Hero() {
                 <div className="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-3 transition-all hover:bg-gray-50">
                   <CreditCard className="h-5 w-5 text-gray-600" />
                   <div className="text-center">
-                    <p className="text-xs text-gray-700 font-medium">Bank Transfer</p>
+                    <p className="text-xs text-gray-700 font-medium">
+                      Bank Transfer
+                    </p>
                     <p className="text-xs text-gray-400">Regnantlimas</p>
                   </div>
                 </div>
                 <div className="flex flex-col items-center gap-2 rounded-lg border border-gray-200 p-3 transition-all hover:bg-gray-50">
                   <CreditCard className="h-5 w-5 text-gray-600" />
                   <div className="text-center">
-                    <p className="text-xs text-gray-700 font-medium">Card Payment</p>
+                    <p className="text-xs text-gray-700 font-medium">
+                      Card Payment
+                    </p>
                     <p className="text-xs text-gray-400">Comprise Loon</p>
                   </div>
                 </div>
@@ -97,8 +117,12 @@ export default function Hero() {
                 <div>
                   <p className="text-sm text-gray-500 mb-1">AED Dashboard</p>
                   <div className="flex items-baseline gap-2">
-                    <h3 className="text-3xl md:text-4xl font-bold text-gray-900">$34,743.00</h3>
-                    <span className="text-sm font-medium text-green-600">+6.5%</span>
+                    <h3 className="text-3xl md:text-4xl font-bold text-gray-900">
+                      $34,743.00
+                    </h3>
+                    <span className="text-sm font-medium text-green-600">
+                      +6.5%
+                    </span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -121,5 +145,5 @@ export default function Hero() {
         </div>
       </div>
     </section>
-  )
+  );
 }

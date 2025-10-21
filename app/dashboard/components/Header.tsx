@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Layers, Plus, User } from "lucide-react";
 import Link from "next/link";
+import { AddProjectModal } from "./AddProjectModal"; 
 
 export const Header = () => {
   return (
@@ -24,10 +25,7 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button size="sm" className="gap-2 bg-white text-primary hover:bg-black/20">
-            <Plus className="h-4 w-4" />
-            Add Project
-          </Button>
+          <AddProjectModal /> 
           <Button size="sm" variant="outline" className="gap-2 border-white/30 bg-white/10 text-black hover:bg-black/20">
             <Plus className="h-4 w-4" />
             Add Keyword
