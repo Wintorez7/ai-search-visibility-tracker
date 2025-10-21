@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 
@@ -27,11 +21,10 @@ export const AddProjectModal = () => {
     e.preventDefault();
     setLoading(true);
 
-    // 1️⃣ Create the new project
+    // 1️⃣ Create project
     const res = await fetch("/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({
         ...form,
         competitors: form.competitors
@@ -44,28 +37,24 @@ export const AddProjectModal = () => {
     });
 
     const data = await res.json();
-    setLoading(false);
 
     if (data.error) {
       alert("❌ " + data.error);
+      setLoading(false);
       return;
     }
 
+    // 2️⃣ Immediately generate random check data
+    await fetch("/api/checks/run", { method: "POST" });
+
     alert("✅ Project added successfully!");
-
-    // 2️⃣ Automatically generate fake checks for this new project
-    try {
-      await fetch("/api/checks/run", {
-        method: "POST",
-      });
-      console.log("✅ Auto visibility checks added!");
-    } catch (err) {
-      console.error("Error running auto checks:", err);
-    }
-
-    // 3️⃣ Clear form & refresh dashboard
     setForm({ domain: "", brand: "", competitors: "", keywords: "" });
-    router.refresh(); // 🔥 This revalidates charts, tables & metrics
+
+    // 3️⃣ Wait a moment for Supabase insert → then refresh UI
+    setTimeout(() => {
+      router.refresh();
+      setLoading(false);
+    }, 2000);
   };
 
   return (
