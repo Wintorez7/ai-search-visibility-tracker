@@ -1,23 +1,27 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createClient } from "@/lib/supabase-server";
 
-/**
- * 🔹 GET → Fetch a single project
- * 🔹 PUT → Update a project
- * 🔹 DELETE → Delete a project
- */
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+
+type RouteContext = {
+  params: { id: string } | Promise<{ id: string }>;
+};
+
+//  GET
+export async function GET(req: NextRequest, context: RouteContext) {
+  const { id } = await context.params; // ✅ works in both Next 14 & 15
   const { userId } = await auth();
+
   if (!userId)
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
   const supabase = await createClient();
+
   const { data, error } = await supabase
     .from("projects")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("user_id", userId)
     .single();
 
@@ -27,10 +31,12 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   return NextResponse.json(data);
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+//  PUT
+export async function PUT(req: NextRequest, context: RouteContext) {
+  const { id } = await context.params;
   const { userId } = await auth();
+
   if (!userId)
-    
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
   const supabase = await createClient();
@@ -39,7 +45,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   const { data, error } = await supabase
     .from("projects")
     .update(body)
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("user_id", userId)
     .select()
     .single();
@@ -53,20 +59,22 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   });
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+//  DELETE
+export async function DELETE(req: NextRequest, context: RouteContext) {
+  const { id } = await context.params;
   const { userId } = await auth();
-  if (!userId){
+
+  if (!userId) {
     console.log("❌ No user found via Clerk");
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
-    
 
   const supabase = await createClient();
 
   const { error } = await supabase
     .from("projects")
     .delete()
-    .eq("id", params.id)
+    .eq("id", id)
     .eq("user_id", userId);
 
   if (error)

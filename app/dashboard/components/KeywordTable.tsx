@@ -95,47 +95,50 @@ const VisibilityBadge = ({ visibility }: { visibility: number }) => {
   return <Badge className="bg-red-100 text-red-800 hover:bg-red-200">Low</Badge>;
 };
 
-export const KeywordTable = () => {
-  const [isMounted, setIsMounted] = useState(false);
+export const KeywordTable = ({
+  projectId,
+  refresh,
+}: {
+  projectId: string;
+  refresh?: boolean;
+}) => {
   const [keywords, setKeywords] = useState<KeywordData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEngine, setFilterEngine] = useState("all");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [sortBy, setSortBy] = useState<"keyword" | "visibility" | "trend">("visibility");
-  const [expandedRows, setExpandedRows] = useState<number[]>([]);
 
-  useEffect(() => {
-    setIsMounted(true);
-
-    async function fetchKeywords() {
-      try {
-        const res = await fetch("/api/keywords");
-        const data = await res.json();
-        setKeywords(data);
-      } catch (error) {
-        console.error("Error fetching keywords:", error);
-      }
+  // ✅ Fetch keywords dynamically based on projectId
+  const fetchKeywords = async () => {
+    if (!projectId) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/keywords?projectId=${projectId}`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      setKeywords(data || []);
+    } catch (error) {
+      console.error("Error fetching keywords:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  // ✅ Re-fetch when project changes or refresh triggered
+  useEffect(() => {
     fetchKeywords();
-  }, []);
+  }, [projectId, refresh]);
 
-  if (!isMounted) {
-    return (
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-100">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-gray-800">Keyword Visibility</CardTitle>
-          <p className="text-sm text-gray-500">Loading data...</p>
-        </CardHeader>
-        <CardContent className="h-[400px] flex items-center justify-center">
-          <div className="flex flex-col items-center gap-2">
-            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-sm text-gray-500">Fetching...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleSort = (column: "keyword" | "visibility" | "trend") => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(column);
+      setSortOrder("desc");
+    }
+  };
 
   const filteredKeywords = keywords
     .filter((item) => {
@@ -173,20 +176,23 @@ export const KeywordTable = () => {
       }
     });
 
-  const toggleRowExpansion = (id: number) => {
-    setExpandedRows((prev) =>
-      prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
+  // ✅ Loading State
+  if (loading) {
+    return (
+      <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-gray-800">Keyword Visibility</CardTitle>
+          <p className="text-sm text-gray-500">Loading data...</p>
+        </CardHeader>
+        <CardContent className="h-[400px] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-sm text-gray-500">Fetching...</p>
+          </div>
+        </CardContent>
+      </Card>
     );
-  };
-
-  const handleSort = (column: "keyword" | "visibility" | "trend") => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortBy(column);
-      setSortOrder("desc");
-    }
-  };
+  }
 
   return (
     <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -297,7 +303,7 @@ export const KeywordTable = () => {
           </Table>
         </div>
 
-        {filteredKeywords.length === 0 && (
+        {filteredKeywords.length === 0 && !loading && (
           <div className="flex flex-col items-center justify-center py-8">
             <p className="text-gray-500 mb-2">No keywords found matching your criteria</p>
             <Button

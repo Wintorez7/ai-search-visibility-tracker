@@ -41,29 +41,74 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export const VisibilityTrendChart: FC = () => {
-  const [isMounted, setIsMounted] = useState(false);
-  const [animationKey, setAnimationKey] = useState(0);
+interface Props {
+  projectId: string;
+  refresh?: boolean;
+}
+
+export const VisibilityTrendChart: FC<Props> = ({ projectId, refresh }) => {
   const [data, setData] = useState<VisibilityData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [animationKey, setAnimationKey] = useState(0);
 
-  useEffect(() => {
-    setIsMounted(true);
-    setAnimationKey((prev) => prev + 1);
+  // ✅ Fetch visibility data dynamically for selected project
+  const fetchData = async () => {
+    if (!projectId) return;
+    setLoading(true);
 
-    async function fetchData() {
-      try {
-        const res = await fetch("/api/visibility-trend");
-        const result = await res.json();
-        setData(result);
-      } catch (error) {
-        console.error("Error fetching visibility trend:", error);
-      }
+    try {
+      const res = await fetch(`/api/visibility-trend?projectId=${projectId}`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch visibility trend");
+      const result = await res.json();
+      setData(result || []);
+      setAnimationKey((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error fetching visibility trend:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  // ✅ Fetch when project changes or refresh triggered
+  useEffect(() => {
     fetchData();
-  }, []);
+  }, [projectId, refresh]);
 
-  if (!isMounted || data.length === 0) {
+  // ✅ Optional realtime auto-update (if Supabase enabled)
+  useEffect(() => {
+    if (!projectId) return;
+
+    import("@supabase/supabase-js").then(({ createClient }) => {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+
+      const channel = supabase
+        .channel("realtime-trend")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "checks",
+          },
+          (payload) => {
+            if (payload.new.project_id === projectId) {
+              fetchData();
+            }
+          }
+        )
+        .subscribe();
+
+      return () => supabase.removeChannel(channel);
+    });
+  }, [projectId]);
+
+  // ✅ Loading skeleton
+  if (loading || data.length === 0) {
     return (
       <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-100">
         <CardHeader>
@@ -82,6 +127,7 @@ export const VisibilityTrendChart: FC = () => {
     );
   }
 
+  // ✅ Compute stats
   const avgVisibility = Math.round(
     data.reduce((sum, item) => sum + item.visibility, 0) / data.length
   );

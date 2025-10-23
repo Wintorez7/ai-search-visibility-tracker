@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [projectId, setProjectId] = useState("");
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [refreshFlag, setRefreshFlag] = useState(false);
 
   const fetchMetrics = async (id: string) => {
     if (!id) return;
@@ -64,15 +65,15 @@ export default function DashboardPage() {
 
         {/* 📊 Charts */}
         <div className="grid gap-8 lg:grid-cols-2">
-          <VisibilityTrendChart />
-          <EngineBreakdownChart />
+          <VisibilityTrendChart projectId={projectId} refresh={refreshFlag}/>
+          <EngineBreakdownChart projectId={projectId} refresh={refreshFlag}/>
         </div>
 
         {/* 🔍 Keyword Table */}
-        <KeywordTable />
+        <KeywordTable projectId={projectId} refresh={refreshFlag}/>
 
         {/* 💡 Recommendations */}
-        <RecommendationsPanel />
+        <RecommendationsPanel/>
       </main>
     </div>
   );

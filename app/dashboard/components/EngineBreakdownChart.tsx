@@ -18,34 +18,84 @@ import {
   Cell,
 } from "recharts";
 
+// Type for the engine breakdown data
 interface EngineData {
   engine: string;
   visibility: number;
   color: string;
 }
 
-export const EngineBreakdownChart = () => {
-  const [isMounted, setIsMounted] = useState(false);
+// Accept props: projectId (for dynamic updates) + refresh (optional toggle)
+export const EngineBreakdownChart = ({
+  projectId,
+  refresh,
+}: {
+  projectId: string;
+  refresh?: boolean;
+}) => {
   const [data, setData] = useState<EngineData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 🎯 Fetch engine-level visibility dynamically
-  useEffect(() => {
-    setIsMounted(true);
+  // ✅ Fetch engine breakdown dynamically based on projectId
+  const fetchEngineData = async () => {
+    if (!projectId) return;
+    setLoading(true);
 
-    async function fetchEngineData() {
-      try {
-        const res = await fetch("/api/engine-breakdown");
-        const result = await res.json();
-        setData(result);
-      } catch (error) {
-        console.error("Error fetching engine breakdown:", error);
-      }
+    try {
+      const res = await fetch(`/api/engine-breakdown?projectId=${projectId}`, {
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to fetch engine data");
+      const result = await res.json();
+      setData(result || []);
+    } catch (error) {
+      console.error("Error fetching engine breakdown:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  // ✅ Refetch whenever projectId or refresh changes
+  useEffect(() => {
     fetchEngineData();
-  }, []);
+  }, [projectId, refresh]);
 
-  if (!isMounted) {
+  // ✅ Optional realtime subscription (auto refresh when new checks inserted)
+  useEffect(() => {
+    if (!projectId) return;
+
+    // Lazy import to avoid errors in Edge runtime
+    import("@supabase/supabase-js").then(({ createClient }) => {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+
+      const channel = supabase
+        .channel("realtime-checks")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "checks",
+          },
+          (payload) => {
+            if (payload.new.project_id === projectId) {
+              fetchEngineData();
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    });
+  }, [projectId]);
+
+  // ✅ Chart loading skeleton
+  if (loading) {
     return (
       <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-100">
         <CardHeader>
@@ -57,13 +107,14 @@ export const EngineBreakdownChart = () => {
         <CardContent className="h-[350px] flex items-center justify-center">
           <div className="flex flex-col items-center gap-2">
             <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-sm text-gray-500">Initializing...</p>
+            <p className="text-sm text-gray-500">Fetching data...</p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
+  // ✅ Tooltip component
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -91,6 +142,7 @@ export const EngineBreakdownChart = () => {
           Visibility across AI platforms
         </p>
       </CardHeader>
+
       <CardContent>
         <div className="h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -130,7 +182,7 @@ export const EngineBreakdownChart = () => {
               <Bar
                 dataKey="visibility"
                 radius={[12, 12, 0, 0]}
-                animationDuration={1500}
+                animationDuration={1200}
                 animationBegin={0}
               >
                 {data.map((item) => (
