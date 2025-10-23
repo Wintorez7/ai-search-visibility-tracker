@@ -28,7 +28,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <html lang="en" suppressHydrationWarning>
         <body className={`antialiased ${inter.className}`}>
           <Suspense fallback={<Loading />}>
-            {/* ✅ Render conditionally */}
+            {/* Render conditionally */}
             {hideCommonLayout ? (
               children
             ) : (

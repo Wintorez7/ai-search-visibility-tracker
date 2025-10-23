@@ -44,18 +44,6 @@ cd aeo-tracker
 npm install
 
 
-3️⃣ Set Up Environment Variables
-
-Create a .env.local file in the root directory and add the following:
-
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_d2lzZS1hZGRlci00MC5jbGVyay5hY2NvdW50cy5kZXYk
-CLERK_SECRET_KEY=sk_test_bxoBjptrhIwUQ5ggamUNOb7cZwhftAgY3bJkr1pqCn
-
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/
-NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
-MONGODB_URI=mongodb+srv://mohanKumhar:MK2025@cluster0.zlg15hi.mongodb.net/
-
 
 s
 🧩 Running the Project
