@@ -2,19 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createClient } from "@/lib/supabase-server";
 
-/**
- * 🔹 GET → Fetch a single project
- * 🔹 PUT → Update a project
- * 🔹 DELETE → Delete a project
- */
 
-interface RouteContext {
-  params: Promise<{ id: string }>; //  must be a Promise in Next.js 15.5+
-}
 
-//  GET
-export async function GET(req: NextRequest, context: RouteContext) {
-  const { id } = await context.params; //  required in Next 15.5+
+//  This matches Next.js 15’s exact expectation for route handlers
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<Record<string, string>> }
+) {
+  const { id } = await context.params;
   const { userId } = await auth();
 
   if (!userId)
@@ -34,8 +29,10 @@ export async function GET(req: NextRequest, context: RouteContext) {
   return NextResponse.json(data);
 }
 
-//  PUT
-export async function PUT(req: NextRequest, context: RouteContext) {
+export async function PUT(
+  req: NextRequest,
+  context: { params: Promise<Record<string, string>> }
+) {
   const { id } = await context.params;
   const { userId } = await auth();
 
@@ -62,8 +59,10 @@ export async function PUT(req: NextRequest, context: RouteContext) {
   });
 }
 
-//  DELETE
-export async function DELETE(req: NextRequest, context: RouteContext) {
+export async function DELETE(
+  req: NextRequest,
+  context: { params: Promise<Record<string, string>> }
+) {
   const { id } = await context.params;
   const { userId } = await auth();
 
