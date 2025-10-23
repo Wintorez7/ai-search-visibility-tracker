@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 interface Project {
   id: string;
@@ -13,43 +15,71 @@ interface Project {
 export const ProjectSelector = ({ onSelect }: { onSelect: (id: string) => void }) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selected, setSelected] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
-  // ✅ Create Supabase client
+  // ✅ Supabase client
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // ✅ Function to fetch projects
+  // ✅ Fetch projects
   const fetchProjects = async () => {
-    const res = await fetch("/api/projects/list", { credentials: "include" });
-    const data = await res.json();
-    setProjects(data.projects || []);
+    try {
+      const res = await fetch("/api/projects/list", { credentials: "include" });
+      const data = await res.json();
+      setProjects(data.projects || []);
 
-    if (data.projects?.length && !selected) {
-      setSelected(data.projects[0].id);
-      onSelect(data.projects[0].id);
+      // Auto-select first project if none selected
+      if (data.projects?.length && !selected) {
+        setSelected(data.projects[0].id);
+        onSelect(data.projects[0].id);
+      }
+    } catch (err) {
+      console.error("Error fetching projects:", err);
     }
   };
 
-  // ✅ Fetch projects initially
+  // ✅ Delete project
+  const handleDelete = async () => {
+    if (!selected) return alert("Please select a project to delete.");
+    if (!confirm("Are you sure you want to delete this project?")) return;
+
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/projects/${selected}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      console.log("🧩 Delete response:", data);
+
+      if (!res.ok) throw new Error("Failed to delete project");
+      alert("Project deleted successfully ✅");
+
+      // Refresh project list
+      await fetchProjects();
+      setSelected("");
+      onSelect("");
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Error deleting project ❌");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Fetch projects + realtime subscription
   useEffect(() => {
     fetchProjects();
 
-    // ✅ Subscribe to Supabase changes
     const channel = supabase
       .channel("realtime-projects")
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "projects",
-        },
-        (payload) => {
-          console.log("📡 Realtime change detected:", payload);
-          fetchProjects(); // refresh automatically
-        }
+        { event: "*", schema: "public", table: "projects" },
+        () => fetchProjects()
       )
       .subscribe();
 
@@ -61,6 +91,8 @@ export const ProjectSelector = ({ onSelect }: { onSelect: (id: string) => void }
   return (
     <div className="flex items-center gap-3 mb-6">
       <span className="font-medium text-gray-700">Select Project:</span>
+
+      {/* Project Selector */}
       <Select
         value={selected}
         onValueChange={(val) => {
@@ -85,6 +117,17 @@ export const ProjectSelector = ({ onSelect }: { onSelect: (id: string) => void }
           )}
         </SelectContent>
       </Select>
+
+      {/* Delete Button */}
+      <Button
+        variant="destructive"
+        disabled={!selected || loading}
+        onClick={handleDelete}
+        className="flex items-center gap-2"
+      >
+        <Trash2 className="w-4 h-4" />
+        {loading ? "Deleting..." : "Delete"}
+      </Button>
     </div>
   );
 };
